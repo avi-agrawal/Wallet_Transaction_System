@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Wallet</title>
+</head>
+<body>
+    
+
+    <h1>Create Wallet</h1>
+    <h3>Enter your Name and ID:</h3>
+    <br>
+    <form action="/create_wallet" method="POST">
+        
+        NAME: <input type= "text" name="name" id="name">
+        <br><br>
+        
+        Phone_No: <input type="int" name="id" id="id">
+        <br><br>
+
+        Opening Balance: <input type="float" name="opening_balance" id="opening_balance">
+        <br><br>
+
+        <input type="submit" name="submit" value="Create">
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <b><p style="color:red"> {{ message }} </p></b>            
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <br><br><br>
+    <form action="/home" method="GET">
+        <input type="submit" name="home_submit" value="Go to Home">
+    </form>
+    
+</body>
+</html>

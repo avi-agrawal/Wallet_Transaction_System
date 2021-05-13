@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    <h1 style="color: rgb(40, 83, 163);">Zolve Wallet transaction system</h1>
+    Hey! Select what you want
+    <br><br>
+    
+    <a href="create_wallet">Create Wallet</a>
+    <br><br>
+
+    <a href="check_balance">Check Balance</a>
+    <br><br>
+
+    <a href="credit">Credit Money</a>
+    <br><br>
+
+    <a href="debit">Debit Money</a>
+    <br><br>
+
+    <a href="show_transactions">Show All Transactions</a>
+    <br><br>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <b><p style="color:red"> {{ message }} </p></b>            
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+</body>
+</html>

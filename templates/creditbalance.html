@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Balance</title>
+</head>
+<body>
+
+    <h1>Credit Balance</h1>
+    <h2>Enter Phone No. and Amount to be credited:</h2>
+    <br>
+    <form action="/credit" method="POST">
+        
+        Phone_No: <input type="int" name="id" id="id">
+        <br><br>
+
+        Amount: <input type="float" name="amount" id="amount">
+        <br><br>
+
+        <input type="submit" name="credit" value="Credit Amount">
+        <br><br>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <b><p style="color:red"> {{ message }} </p></b>            
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form action="/home" method="GET">
+        <input type="submit" name="home_submit" value="Go to Home">
+    </form>
+</body>
+</html>

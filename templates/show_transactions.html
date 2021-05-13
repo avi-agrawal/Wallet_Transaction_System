@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show Transactions</title>
+</head>
+<body>
+    <h2>All transactions</h2>
+    <h3>Enter your Phone No:</h3>
+    <form action="/show_transactions" method="POST">
+        Phone No: <input type="int" name="id" id="id">
+        <br><br>
+
+        <input type="submit" name="id" value="Show">
+        <br><br>
+    </form>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <b><p style="color:red"> {{ message }} </p></b>            
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+
+    <div class="wallets">
+        {%- if(all_transactions!=[]) %}
+            <h3 style="color:green"> Wallet ID: {{all_transactions[0].ID}} </h3>
+            {%- for transaction in all_transactions %}
+                <h4 style="color:blue">Timestamp: {{transaction.timestamp}}</h4>
+                <p>
+                    {{transaction.log}}
+                    <br>
+                    Updated Balance = {{transaction.balance}}
+                    <br>
+                    <br>
+                </p>
+                
+            {%- endfor %}
+        {%- endif %}
+    </div>
+
+
+    <br><br>
+    <form action="/home" method="GET">
+        <input type="submit" name="home_submit" value="Go to Home">
+    </form>
+</body>
+</html>
