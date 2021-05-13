@@ -4,20 +4,18 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check Balance</title>
+    <title>Login</title>
 </head>
 <body>
-    <h2>Check Balance</h2>
+    <h1 style="color: rgb(40, 83, 163);">Zolve Wallet transaction system</h1>
+    Login-
+    <br><br>
+    <form action="/login" method="POST">
+        Phone No: <input type="int" name="id" id="id">
 
-    <h3>your Balance</h3>
-    <br>
-
-    <form action="/check_balance" method="POST">
-        <!-- Phone No.: <input type="int" name="id" id="id">
-        <br><br> -->
-
-        <input type="submit" name="submit" value="Check Balance">
+        <input type="submit" value="Login" name="login_submit">
     </form>
+
 
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -27,10 +25,11 @@
         {% endif %}
     {% endwith %}
 
-    <br><br><br>
-
-    <form action="/home" method="GET">
-        <input type="submit" name="home_submit" value="Go to Home">
+    <br><br>
+    Create new user:-
+    <br>
+    <form action="/create_wallet" method="GET">
+        <input type="submit" name="create_user_btn" value="Create_user">
     </form>
 </body>
 </html>

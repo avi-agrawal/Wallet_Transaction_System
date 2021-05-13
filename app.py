@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, flash, redirect
 # from flask.helpers import flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 #global
 min_amount = 100
@@ -15,17 +16,23 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///wallets.db"
 db = SQLAlchemy(app)
 app.config["SECRET_KEY"]= "Wallet"
+login_manager = LoginManager()
+login_manager.init_app(app)
 
-#creating flask models
-class wallet_class(db.Model):
+
+#creating flask models or databses
+class wallet_class(UserMixin, db.Model):
     name = db.Column("Name",db.String(50), nullable=False)
     ID = db.Column("ID",db.Integer, primary_key=True)
     balance = db.Column("Balance",db.Float,nullable=False, default=0)
 
+    def get_id(self):
+           return (self.ID)
+
     # def __repr__(self):
     #     return "Wallet created for: " + str(self.id)
 
-#creating transaction tables
+#creating transaction db
 class transactions_class(db.Model):
     transaction_id = db.Column("Transaction ID",db.Text,primary_key=True)
     ID = db.Column("Wallet ID",db.Integer)
@@ -37,13 +44,77 @@ class transactions_class(db.Model):
     #     return "Transaction: " + str(self.log) + " for " + str(self.id)
 
 
-@app.route("/")
-@app.route("/home")
-def index():
-    return render_template("index.html")
+@login_manager.user_loader
+def load_user(user_id):
+    return wallet_class.query.get(int(user_id))
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Api for login user
+@app.route("/")
+@app.route("/login", methods=["GET","POST"])
+def login_user_func():
+
+    if(request.method == "POST"):
+        id = request.form["id"]
+
+        #if no entry in the form
+        if(not id):
+            err_msg = "Give input"
+            flash(err_msg,"error")
+            return redirect("/login")
+
+        #check whether phone_no/id is 10 digits
+        if(len(id)!=10):
+            err_msg = "Enter 10 digits Phone no."
+            flash(err_msg,"error")
+            return redirect("/login")
+
+        id = int(id)
+
+        print("fetch:",wallet_class.query.get(id))
+        if(wallet_class.query.get(id) == None):
+            err_msg = "Wallet for phone_no: " + str(id) + " doesn't exist, First Create new user"
+
+            # return redirect("/error/"+err_msg)
+            # print("inside if")
+            flash(err_msg,"error")
+            # print("after flash")
+            print("Id not there")
+            # return redirect("/create_wallet")
+            return redirect("/login")
+
+        else:
+            user = wallet_class.query.filter_by(ID=id).first()
+            print("User",user)
+            login_user(user)
+            flash("You are logged in","success")
+            return redirect("/home")
+
+    return render_template("login_page.html")
+
+
+#logout API
+@app.route("/logout")
+@login_required
+def logout():
+    id = current_user.ID
+    user = wallet_class.query.filter_by(ID=id).first()
+    # print(user)
+    logout_user()
+    flash("You are logged out","success")
+    return redirect("/login")
+
+
+
+#home 
+@app.route("/home")
+@login_required
+def index():
+    id = current_user.ID
+    return render_template("index.html",id=id)
+
 
 
 #create_wallet API
@@ -51,80 +122,80 @@ def index():
 def create_wallet():
     # return render_template("createwallet.html")
     global user_dict, min_amount
-    try:
-        # print("inside try")
-        if(request.method == "POST"):
-            print("inside post")
-            name = request.form["name"]
-            id = request.form["id"]
-            opening_balance = request.form["opening_balance"]
-            print(id)
+    # try:
+    # print("inside try")
+    if(request.method == "POST"):
+        print("inside post")
+        name = request.form["name"]
+        id = request.form["id"]
+        opening_balance = request.form["opening_balance"]
+        print(id)
 
-            #if no entry in the form
-            if(not name or not id or not opening_balance):
-                err_msg = "Give all the inputs"
-                flash(err_msg,"error")
-                return redirect("/create_wallet")
+        #if no entry in the form
+        if(not name or not id or not opening_balance):
+            err_msg = "Give all the inputs"
+            flash(err_msg,"error")
+            return redirect("/create_wallet")
 
-            #check whether phone_no/id is 10 digits
-            if(len(id)!=10):
-                err_msg = "Enter 10 digits Phone no."
-                flash(err_msg,"error")
-                return redirect("/create_wallet")
-
-
-            id = int(id)
-            opening_balance = float(opening_balance)
-            #check id already exist or not
-            # if(id in user_dict):
-            if(wallet_class.query.get(id) != None):
-                err_msg = "Wallet for phone_no: " + str(id) + " already exist"
-
-                # return redirect("/error/"+err_msg)
-                # print("inside if")
-                flash(err_msg,"error")
-                # print("after flash")
-                print("Id already there")
-                # return redirect("/create_wallet")
-                return redirect("/create_wallet")
-
-            #check whether opening balance is greater than minimum allowed balance
-            if(opening_balance < min_amount):
-                err_msg = "Open wallet with at least " +  str(min_amount) + " Rs. of balance"
-                flash(err_msg,"error")
-                return redirect("/create_wallet")
+        #check whether phone_no/id is 10 digits
+        if(len(id)!=10):
+            err_msg = "Enter 10 digits Phone no."
+            flash(err_msg,"error")
+            return redirect("/create_wallet")
 
 
-            else:
-                log_msg = "Wallet Created with opening balance " + str(opening_balance)
+        id = int(id)
+        opening_balance = float(opening_balance)
+        #check id already exist or not
+        # if(id in user_dict):
+        if(wallet_class.query.get(id) != None):
+            err_msg = "Wallet for phone_no: " + str(id) + " already exist"
 
-                # user_dict[id] = {"balance":opening_balance,"transactions":[log_msg]}
-                # print("user_dict:",user_dict)
+            # return redirect("/error/"+err_msg)
+            # print("inside if")
+            flash(err_msg,"error")
+            # print("after flash")
+            print("Id already there")
+            # return redirect("/create_wallet")
+            return redirect("/create_wallet")
 
-                #db working
-                new_wallet_entry = wallet_class(name=name, ID=id, balance=opening_balance)
-                db.session.add(new_wallet_entry)
-                db.session.commit()
-                
-                # print("before")
-                curr_transaction_id = str(id) + " :-: " + str(datetime.utcnow())
-                new_transaction_entry = transactions_class(transaction_id=curr_transaction_id ,ID=id, log=log_msg, balance=float(opening_balance))
-                db.session.add(new_transaction_entry)
-                db.session.commit() 
-                # print("after")           
+        #check whether opening balance is greater than minimum allowed balance
+        if(opening_balance < min_amount):
+            err_msg = "Open wallet with at least " +  str(min_amount) + " Rs. of balance"
+            flash(err_msg,"error")
+            return redirect("/create_wallet")
 
-                print(wallet_class.query.all())
-                print(transactions_class.query.all())
 
-                flash("Wallet created successfully","success")
-                return redirect("/create_wallet")
+        else:
+            log_msg = "Wallet Created with opening balance " + str(opening_balance)
 
-        return render_template("createwallet.html")
+            # user_dict[id] = {"balance":opening_balance,"transactions":[log_msg]}
+            # print("user_dict:",user_dict)
 
-    except Exception as e:
-        print(e)
-        print("Error in creating wallet")
-        return "Error in creating wallet"
+            #db working
+            new_wallet_entry = wallet_class(name=name, ID=id, balance=opening_balance)
+            db.session.add(new_wallet_entry)
+            db.session.commit()
+            
+            # print("before")
+            curr_transaction_id = str(id) + " :-: " + str(datetime.utcnow())
+            new_transaction_entry = transactions_class(transaction_id=curr_transaction_id ,ID=id, log=log_msg, balance=float(opening_balance))
+            db.session.add(new_transaction_entry)
+            db.session.commit() 
+            # print("after")           
+
+            print(wallet_class.query.all())
+            print(transactions_class.query.all())
+
+            flash("Wallet created successfully","success")
+            return redirect("/create_wallet")
+
+    return render_template("createwallet.html")
+
+    # except Exception as e:
+    #     print(e)
+    #     print("Error in creating wallet")
+    #     return "Error in creating wallet"
 
 
 
@@ -141,21 +212,25 @@ def error_msg(msg):
 
 #check balance
 @app.route("/check_balance",methods=["GET","POST"])
+@login_required
 def check_balance():
     global user_dict, min_amount
     try:
         if(request.method=="POST"):
-            id = request.form["id"]
+            # id = request.form["id"]
+            id = current_user.ID
+            print("Id:",id)
+            print(type(id))
 
             #if fields not enter
             if(not id):
-                err_msg = "Give input"
+                err_msg = "No Id given"
                 flash(err_msg,"error")
                 return redirect("/check_balance")
             
             #check whether phone_no/id is 10 digits
-            if(len(id)!=10):
-                err_msg = "Enter 10 digits Phone no."
+            if(len(str(id))!=10):
+                err_msg = "Give 10 digits Phone no."
                 flash(err_msg,"error")
                 return redirect("/check_balance")
 
@@ -190,14 +265,16 @@ def check_balance():
 
 #credit money to wallet
 @app.route("/credit",methods=["GET","POST"])
+@login_required
 def credit_money():
     global user_dict, min_amount
     
     # try:
 
     if(request.method=="POST"):
-        id = request.form["id"]
+        # id = request.form["id"]
         # print("type:",type(id))
+        id = current_user.ID
         amount = request.form["amount"]
 
         #if fields not enter
@@ -207,7 +284,7 @@ def credit_money():
             return redirect("/credit")
         
         #check whether phone_no/id is 10 digits
-        if(len(id)!=10):
+        if(len(str(id))!=10):
             err_msg = "Enter 10 digits Phone no."
             flash(err_msg,"error")
             return redirect("/credit")
@@ -238,7 +315,7 @@ def credit_money():
             record_obj.balance = float(credit_balance)
             db.session.commit()
             
-            print("Succes till credit")
+            print("Success till credit")
             print(type(credit_balance))
             print(credit_balance)
             print(type(record_obj.balance))
@@ -274,13 +351,15 @@ def credit_money():
 
 #debit money from wallet
 @app.route("/debit",methods=["GET","POST"])
+@login_required
 def debit_money():
     global user_dict, min_amount
     
     try:
         if(request.method=="POST"):
 
-            id = request.form["id"]
+            # id = request.form["id"]
+            id = current_user.ID
             amount = request.form["amount"]
 
             #if fields not enter
@@ -290,7 +369,7 @@ def debit_money():
                 return redirect("/debit")
             
             #check whether phone_no/id is 10 digits
-            if(len(id)!=10):
+            if(len(str(id))!=10):
                 err_msg = "Enter 10 digits Phone no."
                 flash(err_msg,"error")
                 return redirect("/debit")
@@ -363,10 +442,12 @@ def debit_money():
 
 
 @app.route("/show_transactions", methods= ["GET","POST"])
+@login_required
 def show_transactions():
     try:
         if(request.method=="POST"):
-            id = (request.form["id"])
+            # id = (request.form["id"])
+            id = current_user.ID
             
             #check for inputs
             if(not id):
@@ -375,7 +456,7 @@ def show_transactions():
                 return redirect("/show_transactions")
 
             #check whether phone_no/id is 10 digits
-            if(len(id)!=10):
+            if(len(str(id))!=10):
                 err_msg = "Enter 10 digits Phone no."
                 flash(err_msg,"error")
                 return redirect("/show_transactions")
@@ -405,5 +486,5 @@ def show_transactions():
 
 if __name__ == "__main__":
     db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 

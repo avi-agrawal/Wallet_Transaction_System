@@ -8,11 +8,13 @@
 </head>
 <body>
     <h1 style="color: rgb(40, 83, 163);">Zolve Wallet transaction system</h1>
-    Hey! Select what you want
+    Hey !: <h2 style="color: green;">{{ id }}</h2>
+    <br>
+    ! Select what you want
     <br><br>
     
-    <a href="create_wallet">Create Wallet</a>
-    <br><br>
+    <!-- <a href="create_wallet">Create Wallet</a>
+    <br><br> -->
 
     <a href="check_balance">Check Balance</a>
     <br><br>
@@ -26,6 +28,7 @@
     <a href="show_transactions">Show All Transactions</a>
     <br><br>
 
+
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
@@ -33,6 +36,11 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
+
+    <br>
+    <form action="/logout" method="GET">
+        <input type="submit" name="logout_btn" value="Logout">
+    </form>
 
 </body>
 </html>
