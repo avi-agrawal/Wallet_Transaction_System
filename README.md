@@ -37,4 +37,12 @@ Below are the libraries that are in the project and some are need to be installe
 
 ### Application Flow
 1. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/server_starting.png" width="75%"></p>
-2. 
+2. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/login_page.png" width="75%"></p>
+3. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/not_logged_in.png" width="75%"></p>
+4. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/create_wallet.png" width="75%"></p>
+5. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/Home_page.png" width="75%"></p>
+6. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/check_balance.png" width="75%"></p>
+7. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/credit_amount.png" width="75%"></p>
+8. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/debit_amount.png" width="75%"></p>
+9. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/show_transactions.png" width="75%"></p>
+10. <p align="center"><img src="https://github.com/avi-agrawal/Wallet_Transaction_System/blob/main/screenshots/after_logout.png" width="75%"></p>
