@@ -55,44 +55,51 @@ def load_user(user_id):
 @app.route("/")
 @app.route("/login", methods=["GET","POST"])
 def login_user_func():
+    try:
+        if(request.method == "POST"):
+            id = request.form["id"]
 
-    if(request.method == "POST"):
-        id = request.form["id"]
+            #if no entry in the form
+            if(not id):
+                err_msg = "Give input"
+                flash(err_msg,"error")
+                return redirect("/login")
 
-        #if no entry in the form
-        if(not id):
-            err_msg = "Give input"
-            flash(err_msg,"error")
-            return redirect("/login")
+            #check whether phone_no/id is 10 digits
+            if(len(id)!=10):
+                err_msg = "Enter 10 digits Phone no."
+                flash(err_msg,"error")
+                return redirect("/login")
 
-        #check whether phone_no/id is 10 digits
-        if(len(id)!=10):
-            err_msg = "Enter 10 digits Phone no."
-            flash(err_msg,"error")
-            return redirect("/login")
+            id = int(id)
 
-        id = int(id)
+            print("fetch:",wallet_class.query.get(id))
+            if(wallet_class.query.get(id) == None):
+                err_msg = "Wallet for phone_no: " + str(id) + " doesn't exist, First Create new user"
 
-        print("fetch:",wallet_class.query.get(id))
-        if(wallet_class.query.get(id) == None):
-            err_msg = "Wallet for phone_no: " + str(id) + " doesn't exist, First Create new user"
+                # return redirect("/error/"+err_msg)
+                # print("inside if")
+                flash(err_msg,"error")
+                # print("after flash")
+                print("Id not there")
+                # return redirect("/create_wallet")
+                return redirect("/login")
 
-            # return redirect("/error/"+err_msg)
-            # print("inside if")
-            flash(err_msg,"error")
-            # print("after flash")
-            print("Id not there")
-            # return redirect("/create_wallet")
-            return redirect("/login")
+            else:
+                user = wallet_class.query.filter_by(ID=id).first()
+                print("User",user)
+                login_user(user)
+                flash("You are logged in","success")
+                return redirect("/home")
 
-        else:
-            user = wallet_class.query.filter_by(ID=id).first()
-            print("User",user)
-            login_user(user)
-            flash("You are logged in","success")
-            return redirect("/home")
-
-    return render_template("login_page.html")
+        return render_template("login_page.html")
+    
+    except Exception as e:
+        print(e)
+        err_msg = "Error in login page: " + str(e)
+        print(err_msg)
+        flash(err_msg,"error")
+        return redirect("/login")
 
 
 #logout API
@@ -122,80 +129,82 @@ def index():
 def create_wallet():
     # return render_template("createwallet.html")
     global user_dict, min_amount
-    # try:
-    # print("inside try")
-    if(request.method == "POST"):
-        print("inside post")
-        name = request.form["name"]
-        id = request.form["id"]
-        opening_balance = request.form["opening_balance"]
-        print(id)
+    try:
+        # print("inside try")
+        if(request.method == "POST"):
+            print("inside post")
+            name = request.form["name"]
+            id = request.form["id"]
+            opening_balance = request.form["opening_balance"]
+            print(id)
 
-        #if no entry in the form
-        if(not name or not id or not opening_balance):
-            err_msg = "Give all the inputs"
-            flash(err_msg,"error")
-            return redirect("/create_wallet")
+            #if no entry in the form
+            if(not name or not id or not opening_balance):
+                err_msg = "Give all the inputs"
+                flash(err_msg,"error")
+                return redirect("/create_wallet")
 
-        #check whether phone_no/id is 10 digits
-        if(len(id)!=10):
-            err_msg = "Enter 10 digits Phone no."
-            flash(err_msg,"error")
-            return redirect("/create_wallet")
-
-
-        id = int(id)
-        opening_balance = float(opening_balance)
-        #check id already exist or not
-        # if(id in user_dict):
-        if(wallet_class.query.get(id) != None):
-            err_msg = "Wallet for phone_no: " + str(id) + " already exist"
-
-            # return redirect("/error/"+err_msg)
-            # print("inside if")
-            flash(err_msg,"error")
-            # print("after flash")
-            print("Id already there")
-            # return redirect("/create_wallet")
-            return redirect("/create_wallet")
-
-        #check whether opening balance is greater than minimum allowed balance
-        if(opening_balance < min_amount):
-            err_msg = "Open wallet with at least " +  str(min_amount) + " Rs. of balance"
-            flash(err_msg,"error")
-            return redirect("/create_wallet")
+            #check whether phone_no/id is 10 digits
+            if(len(id)!=10):
+                err_msg = "Enter 10 digits Phone no."
+                flash(err_msg,"error")
+                return redirect("/create_wallet")
 
 
-        else:
-            log_msg = "Wallet Created with opening balance " + str(opening_balance)
+            id = int(id)
+            opening_balance = float(opening_balance)
+            #check id already exist or not
+            # if(id in user_dict):
+            if(wallet_class.query.get(id) != None):
+                err_msg = "Wallet for phone_no: " + str(id) + " already exist"
 
-            # user_dict[id] = {"balance":opening_balance,"transactions":[log_msg]}
-            # print("user_dict:",user_dict)
+                # return redirect("/error/"+err_msg)
+                # print("inside if")
+                flash(err_msg,"error")
+                # print("after flash")
+                print("Id already there")
+                # return redirect("/create_wallet")
+                return redirect("/create_wallet")
 
-            #db working
-            new_wallet_entry = wallet_class(name=name, ID=id, balance=opening_balance)
-            db.session.add(new_wallet_entry)
-            db.session.commit()
-            
-            # print("before")
-            curr_transaction_id = str(id) + " :-: " + str(datetime.utcnow())
-            new_transaction_entry = transactions_class(transaction_id=curr_transaction_id ,ID=id, log=log_msg, balance=float(opening_balance))
-            db.session.add(new_transaction_entry)
-            db.session.commit() 
-            # print("after")           
+            #check whether opening balance is greater than minimum allowed balance
+            if(opening_balance < min_amount):
+                err_msg = "Open wallet with at least " +  str(min_amount) + " Rs. of balance"
+                flash(err_msg,"error")
+                return redirect("/create_wallet")
 
-            print(wallet_class.query.all())
-            print(transactions_class.query.all())
 
-            flash("Wallet created successfully","success")
-            return redirect("/create_wallet")
+            else:
+                log_msg = "Wallet Created with opening balance " + str(opening_balance)
 
-    return render_template("createwallet.html")
+                # user_dict[id] = {"balance":opening_balance,"transactions":[log_msg]}
+                # print("user_dict:",user_dict)
 
-    # except Exception as e:
-    #     print(e)
-    #     print("Error in creating wallet")
-    #     return "Error in creating wallet"
+                #db working
+                new_wallet_entry = wallet_class(name=name, ID=id, balance=opening_balance)
+                db.session.add(new_wallet_entry)
+                db.session.commit()
+                
+                # print("before")
+                curr_transaction_id = str(id) + " :-: " + str(datetime.utcnow())
+                new_transaction_entry = transactions_class(transaction_id=curr_transaction_id ,ID=id, log=log_msg, balance=float(opening_balance))
+                db.session.add(new_transaction_entry)
+                db.session.commit() 
+                # print("after")           
+
+                print(wallet_class.query.all())
+                print(transactions_class.query.all())
+
+                flash("Wallet created successfully","success")
+                return redirect("/create_wallet")
+
+        return render_template("createwallet.html")
+
+    except Exception as e:
+        print(e)
+        err_msg = "Error in creating wallet: " + str(e)
+        print(err_msg)
+        flash(err_msg,"error")
+        return redirect("/create_wallet")
 
 
 
@@ -257,8 +266,10 @@ def check_balance():
 
     except Exception as e:
         print(e)
-        print("Error in checking balance")
-        return "Error in checking balance"
+        err_msg = "Error in checking balance: " + str(e)
+        print(err_msg)
+        flash(err_msg,"error")
+        return redirect("/check_balance")
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -269,82 +280,84 @@ def check_balance():
 def credit_money():
     global user_dict, min_amount
     
-    # try:
+    try:
 
-    if(request.method=="POST"):
-        # id = request.form["id"]
-        # print("type:",type(id))
-        id = current_user.ID
-        amount = request.form["amount"]
+        if(request.method=="POST"):
+            # id = request.form["id"]
+            # print("type:",type(id))
+            id = current_user.ID
+            amount = request.form["amount"]
 
-        #if fields not enter
-        if(not id or not amount):
-            err_msg = "Give all the input"
-            flash(err_msg,"error")
-            return redirect("/credit")
-        
-        #check whether phone_no/id is 10 digits
-        if(len(str(id))!=10):
-            err_msg = "Enter 10 digits Phone no."
-            flash(err_msg,"error")
-            return redirect("/credit")
+            #if fields not enter
+            if(not id or not amount):
+                err_msg = "Give all the input"
+                flash(err_msg,"error")
+                return redirect("/credit")
+            
+            #check whether phone_no/id is 10 digits
+            if(len(str(id))!=10):
+                err_msg = "Enter 10 digits Phone no."
+                flash(err_msg,"error")
+                return redirect("/credit")
 
-        id = int(id)
-        amount = float(amount)
+            id = int(id)
+            amount = float(amount)
 
-        # checking whether phone no. exist or not
-        # if(id not in user_dict):
-        if(wallet_class.query.get(id) == None):
-            err_msg = "User: " + str(id) + " doesn't exist"
-            flash(err_msg,"error")
-            return redirect("/credit")
+            # checking whether phone no. exist or not
+            # if(id not in user_dict):
+            if(wallet_class.query.get(id) == None):
+                err_msg = "User: " + str(id) + " doesn't exist"
+                flash(err_msg,"error")
+                return redirect("/credit")
 
-        #check whether amount entered is positive value
-        if(amount <= 0):
-            err_msg = "Credit amount should be greater than 0"
-            flash(err_msg,"error")
-            return redirect("/credit")
+            #check whether amount entered is positive value
+            if(amount <= 0):
+                err_msg = "Credit amount should be greater than 0"
+                flash(err_msg,"error")
+                return redirect("/credit")
+                    
+            else:
+                #updating balance
+                # balance = user_dict[id]["balance"] + amount
+                # user_dict[id]["balance"] = balance
+
+                record_obj = wallet_class.query.filter_by(ID=id).first()
+                credit_balance = float(record_obj.balance) + float(amount)
+                record_obj.balance = float(credit_balance)
+                db.session.commit()
                 
-        else:
-            #updating balance
-            # balance = user_dict[id]["balance"] + amount
-            # user_dict[id]["balance"] = balance
+                print("Success till credit")
+                print(type(credit_balance))
+                print(credit_balance)
+                print(type(record_obj.balance))
 
-            record_obj = wallet_class.query.filter_by(ID=id).first()
-            credit_balance = float(record_obj.balance) + float(amount)
-            record_obj.balance = float(credit_balance)
-            db.session.commit()
-            
-            print("Success till credit")
-            print(type(credit_balance))
-            print(credit_balance)
-            print(type(record_obj.balance))
+                #adding transaction to account
+                log_msg = "Amount credited: " + str(amount)
+                # user_dict[id]["transactions"].append(log)
+                print(log_msg)
+                
+                print("id:",type(id))
+                curr_transaction_id = str(id) + " :-: " + str(datetime.utcnow())
+                new_transaction_entry = transactions_class(transaction_id=curr_transaction_id, ID=id, log=log_msg, balance=float(credit_balance))
+                db.session.add(new_transaction_entry)
+                db.session.commit() 
 
-            #adding transaction to account
-            log_msg = "Amount credited: " + str(amount)
-            # user_dict[id]["transactions"].append(log)
-            print(log_msg)
-            
-            print("id:",type(id))
-            curr_transaction_id = str(id) + " :-: " + str(datetime.utcnow())
-            new_transaction_entry = transactions_class(transaction_id=curr_transaction_id, ID=id, log=log_msg, balance=float(credit_balance))
-            db.session.add(new_transaction_entry)
-            db.session.commit() 
+                print("after new transac")
 
-            print("after new transac")
+                msg = "Money credited successfully, Curr. Balance: " + str(credit_balance)
+                flash(msg,"success")
 
-            msg = "Money credited successfully, Curr. Balance: " + str(credit_balance)
-            flash(msg,"success")
-
-            return redirect("/credit")
-    
-    return render_template("creditbalance.html")
+                return redirect("/credit")
+        
+        return render_template("creditbalance.html")
         
 
-    # except Exception as e:
-    #     print(e)
-    #     print("Error in crediting balance")
-    #     return "Error in crediting balance"
+    except Exception as e:
+        print(e)
+        err_msg = "Error in crediting balance: " + str(e)
+        print(err_msg)
+        flash(err_msg,"error")
+        return redirect("/credit")
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -427,8 +440,10 @@ def debit_money():
 
     except Exception as e:
         print(e)
-        print("Error in debiting balance")
-        return "Error in debiting balance"
+        err_msg = "Error in debiting balance: " + str(e)
+        print(err_msg)
+        flash(err_msg,"error")
+        return redirect("/debit")
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -479,8 +494,10 @@ def show_transactions():
 
     except Exception as e:
         print(e)
-        print("Error in all_transactions")
-        return "Error in all_transactions"
+        err_msg = "Error ishow_transactions: " + str(e)
+        print(err_msg)
+        flash(err_msg,"error")
+        return redirect("/show_transactions")
 
 
 
